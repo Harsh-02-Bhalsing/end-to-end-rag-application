@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Application - Home</title>
+    <!-- Link to external CSS file -->
+    <link rel="stylesheet" href="../css/home.css">
+</head>
+<body>
+    <!-- Main container -->
+    <div class="container">
+        <!-- Header section -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">RAG<span class="highlight">AI</span></h1>
+                <div class="user-info">
+                    <span class="user-name" id="userName">User</span>
+                    <button class="logout-btn" id="logoutBtn">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main content area -->
+        <main class="main-content">
+            <div class="welcome-section">
+                <h2 class="welcome-title">Welcome Back!</h2>
+                <p class="welcome-subtitle">What would you like to do today?</p>
+            </div>
+
+            <!-- Action cards grid -->
+            <div class="action-grid">
+                <!-- Create repository card -->
+                <div class="action-card" id="createRepoCard">
+                    <div class="card-icon">📁</div>
+                    <h3 class="card-title">Create Repository</h3>
+                    <p class="card-description">Set up a new document repository</p>
+                </div>
+
+                <!-- Add documents card -->
+                <div class="action-card" id="addDocsCard">
+                    <div class="card-icon">📄</div>
+                    <h3 class="card-title">Add Documents</h3>
+                    <p class="card-description">Upload documents to your repositories</p>
+                </div>
+
+                <!-- Start chat card -->
+                <div class="action-card" id="startChatCard">
+                    <div class="card-icon">💬</div>
+                    <h3 class="card-title">Start Chat</h3>
+                    <p class="card-description">Interact with your document AI assistant</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for creating repository -->
+    <div id="createRepoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New Repository</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <label for="repoName" class="input-label">Repository Name</label>
+                <input 
+                    type="text" 
+                    id="repoName" 
+                    class="input-field" 
+                    placeholder="Enter repository name"
+                    required
+                >
+                <div id="repoMessage" class="modal-message"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                <button class="btn btn-primary" id="createBtn">
+                    <span class="btn-text">Create</span>
+                    <span class="btn-loader" style="display: none;">⏳</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link to external JavaScript file -->
+    <script src="../js/home.js"></script>
+</body>
+</html>

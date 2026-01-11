@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Application - Login</title>
+    <!-- Link to external CSS file -->
+    <link rel="stylesheet" href="../css/login.css">
+</head>
+<body>
+    <!-- Main container -->
+    <div class="container">
+        <!-- Back button to return to index -->
+        <button class="back-btn" id="backBtn">← Back</button>
+
+        <!-- Login card -->
+        <div class="login-card">
+            <!-- Header section -->
+            <div class="card-header">
+                <h1 class="title">Welcome Back</h1>
+                <p class="subtitle">Login to access your repositories</p>
+            </div>
+
+            <!-- Login form -->
+            <form id="loginForm" class="login-form">
+                <!-- User ID input group -->
+                <div class="input-group">
+                    <label for="userId" class="input-label">User ID</label>
+                    <input 
+                        type="text" 
+                        id="userId" 
+                        name="userId" 
+                        class="input-field" 
+                        placeholder="Enter your user ID"
+                        required
+                    >
+                </div>
+
+                <!-- Password input group -->
+                <div class="input-group">
+                    <label for="password" class="input-label">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="input-field" 
+                        placeholder="Enter your password"
+                        required
+                    >
+        
+                    <div class="show-password">
+                        <input 
+                            type="checkbox" 
+                            id="showPassword" 
+                            onclick="togglePassword()"
+                        >
+                        <label for="showPassword">Show password</label>
+                    </div>
+
+
+                </div>
+
+                <!-- Error message container (hidden by default) -->
+                <div id="errorMessage" class="error-message"></div>
+
+                <!-- Submit button -->
+                <button type="submit" class="submit-btn">
+                    <span class="btn-text">Login</span>
+                    <span class="btn-loader" style="display: none;">⏳</span>
+                </button>
+            </form>
+
+            <!-- Footer link to signup -->
+            <div class="card-footer">
+                <p>Don't have an account? <a href="sign_up.html" class="link">Sign up here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link to external JavaScript file -->
+    <script src="../js/login.js"></script>
+</body>
+</html>

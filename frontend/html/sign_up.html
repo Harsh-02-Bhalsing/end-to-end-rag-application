@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Application - Sign Up</title>
+    <!-- Link to external CSS file -->
+    <link rel="stylesheet" href="../css/sign_up.css">
+</head>
+<body>
+    <!-- Main container -->
+    <div class="container">
+        <!-- Back button to return to index -->
+        <button class="back-btn" id="backBtn">← Back</button>
+
+        <!-- Sign up card -->
+        <div class="signup-card">
+            <!-- Header section -->
+            <div class="card-header">
+                <h1 class="title">Create Account</h1>
+                <p class="subtitle">Start your journey with RAGAI</p>
+            </div>
+
+            <!-- Sign up form -->
+            <form id="signupForm" class="signup-form">
+                <!-- User ID input group -->
+                <div class="input-group">
+                    <label for="userId" class="input-label">User ID</label>
+                    <input 
+                        type="text" 
+                        id="userId" 
+                        name="userId" 
+                        class="input-field" 
+                        placeholder="Choose a unique user ID"
+                        required
+                        minlength="3"
+                    >
+                    <span class="input-hint">At least 3 characters</span>
+                </div>
+
+                <!-- Name input group -->
+                <div class="input-group">
+                    <label for="name" class="input-label">First Name</label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        class="input-field" 
+                        placeholder="Enter your first name"
+                        required
+                    >
+                </div>
+
+                <!-- Surname input group -->
+                <div class="input-group">
+                    <label for="surname" class="input-label">Last Name</label>
+                    <input 
+                        type="text" 
+                        id="surname" 
+                        name="surname" 
+                        class="input-field" 
+                        placeholder="Enter your last name"
+                        required
+                    >
+                </div>
+
+                <!-- Password input group -->
+                <div class="input-group">
+                    <label for="password" class="input-label">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="input-field" 
+                        placeholder="Create a strong password"
+                        required
+                        minlength="6"
+                    >
+                    <span class="input-hint">At least 6 characters</span>
+                </div>
+
+                <!-- Confirm Password input group -->
+                <div class="input-group">
+                    <label for="confirmPassword" class="input-label">Confirm Password</label>
+                    <input 
+                        type="password" 
+                        id="confirmPassword" 
+                        name="confirmPassword" 
+                        class="input-field" 
+                        placeholder="Re-enter your password"
+                        required
+                    >
+                </div>
+
+                <!-- Message container (for errors/success) -->
+                <div id="message" class="message"></div>
+
+                <!-- Submit button -->
+                <button type="submit" class="submit-btn">
+                    <span class="btn-text">Create Account</span>
+                    <span class="btn-loader" style="display: none;">⏳</span>
+                </button>
+            </form>
+
+            <!-- Footer link to login -->
+            <div class="card-footer">
+                <p>Already have an account? <a href="login.html" class="link">Login here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link to external JavaScript file -->
+    <script src="../js/sign_up.js"></script>
+</body>
+</html>
