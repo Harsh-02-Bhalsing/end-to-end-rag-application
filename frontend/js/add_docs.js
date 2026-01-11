@@ -4,7 +4,7 @@
  */
 
 // API Configuration (to be updated with actual backend URL)
-const API_BASE_URL = 'http://localhost:8000/api'; // Change this to your backend URL
+const API_BASE_URL = 'http://localhost:8000/'; // Change this to your backend URL
 
 // Global variables
 let selectedFile = null;
@@ -69,10 +69,13 @@ document.addEventListener('DOMContentLoaded', function() {
         repositoriesGrid.classList.remove('show');
 
         try {
-            const response = await fetch(`${API_BASE_URL}/get-repositories?user_id=${userId}`);
+            const response = await fetch(`${API_BASE_URL}repo/get-repositories?user_id=${userId}`);
+
+    
+
             const data = await response.json();
 
-            if (response.ok && data.success) {
+            if (response.ok ) {
                 if (data.repositories && data.repositories.length > 0) {
                     // Display repositories
                     displayRepositories(data.repositories);

@@ -4,7 +4,7 @@
  */
 
 // API Configuration (to be updated with actual backend URL)
-const API_BASE_URL = 'http://localhost:8000'; // Change this to your backend URL
+const API_BASE_URL = 'http://localhost:8000/'; // Change this to your backend URL
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Sending create repository request...'); // Debug log
             
             // Make API call to create repository
-            const response = await fetch(`${API_BASE_URL}/create_repo/`, {
+            const response = await fetch(`${API_BASE_URL}repo/create_repo/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
