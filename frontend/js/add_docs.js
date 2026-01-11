@@ -101,6 +101,9 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function displayRepositories(repositories) {
         repositoriesGrid.innerHTML = '';
+
+        loadingState.classList.remove('show');
+        emptyState.classList.remove('show');
         
         repositories.forEach(repo => {
             const repoCard = document.createElement('div');
@@ -238,8 +241,9 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('file', selectedFile);
             formData.append('repo_name', currentRepo.repo_name);
             formData.append('user_id', userId);
+            formData.append('repo_id',currentRepo.repo_id)
 
-            const response = await fetch(`${API_BASE_URL}/upload-document`, {
+            const response = await fetch(`${API_BASE_URL}repo/upload-document`, {
                 method: 'POST',
                 body: formData
             });

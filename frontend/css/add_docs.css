@@ -138,11 +138,16 @@ body {
     font-weight: 300;
 }
 
-/* Loading state */
+/* ✅ CRITICAL FIX: Loading state with show/hide */
 .loading-state {
+    display: none; /* Hidden by default */
     text-align: center;
     padding: 80px 20px;
     animation: fadeIn 0.4s ease;
+}
+
+.loading-state.show {
+    display: block; /* Show when .show class is added */
 }
 
 .loading-spinner {
@@ -164,13 +169,18 @@ body {
     font-size: 1rem;
 }
 
-/* Empty state */
+/* ✅ CRITICAL FIX: Empty state with show/hide */
 .empty-state {
+    display: none; /* Hidden by default */
     text-align: center;
     padding: 80px 20px;
     max-width: 500px;
     margin: 0 auto;
     animation: fadeIn 0.6s ease;
+}
+
+.empty-state.show {
+    display: block; /* Show when .show class is added */
 }
 
 .empty-icon {
@@ -210,12 +220,16 @@ body {
     box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
 }
 
-/* Repositories grid */
+/* ✅ CRITICAL FIX: Repositories grid with show/hide */
 .repositories-grid {
-    display: grid;
+    display: none; /* Hidden by default */
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 25px;
     animation: fadeIn 0.6s ease;
+}
+
+.repositories-grid.show {
+    display: grid; /* Show as grid when .show class is added */
 }
 
 .repo-card {
@@ -252,21 +266,32 @@ body {
     box-shadow: 0 12px 35px rgba(102, 126, 234, 0.3);
 }
 
+.repo-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
 .repo-icon {
     font-size: 2.5rem;
-    margin-bottom: 15px;
 }
 
 .repo-name {
     font-size: 1.3rem;
     font-weight: 600;
     color: #ffffff;
-    margin-bottom: 10px;
 }
 
 .repo-info {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: #b0b0b0;
+}
+
+.doc-count {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 /* Modal styles */
@@ -285,7 +310,7 @@ body {
     animation: fadeIn 0.3s ease;
 }
 
-.modal.active {
+.modal.show {
     display: flex;
 }
 
@@ -410,18 +435,20 @@ body {
     display: none;
 }
 
+.modal-message.show {
+    display: block;
+}
+
 .modal-message.error {
     background: rgba(220, 53, 69, 0.15);
     border: 1px solid rgba(220, 53, 69, 0.4);
     color: #ff6b6b;
-    display: block;
 }
 
 .modal-message.success {
     background: rgba(40, 167, 69, 0.15);
     border: 1px solid rgba(40, 167, 69, 0.4);
     color: #51cf66;
-    display: block;
 }
 
 .modal-footer {
@@ -455,14 +482,14 @@ body {
     color: #ffffff;
 }
 
-.btn-primary {
+.btn.btn-primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #ffffff;
     position: relative;
     overflow: hidden;
 }
 
-.btn-primary::before {
+.btn.btn-primary::before {
     content: '';
     position: absolute;
     top: 0;
@@ -473,16 +500,16 @@ body {
     transition: left 0.5s;
 }
 
-.btn-primary:hover::before {
+.btn.btn-primary:hover::before {
     left: 100%;
 }
 
-.btn-primary:hover {
+.btn.btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
 }
 
-.btn-primary:disabled {
+.btn.btn-primary:disabled {
     background: #404040;
     cursor: not-allowed;
     opacity: 0.6;
