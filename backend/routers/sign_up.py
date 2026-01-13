@@ -26,4 +26,5 @@ def sign_up_fun(
     db.refresh(new_user)
     return new_user
   else:
+    db.rollback()
     raise HTTPException(status_code=400,detail="user id already exist")

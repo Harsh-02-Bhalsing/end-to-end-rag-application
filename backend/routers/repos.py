@@ -1,7 +1,7 @@
 from fastapi import APIRouter,Depends,HTTPException
 from models.repos import db_repo
 from models.users import db_user
-from schemas.repos import CreateRepoRequest,CreateRepoResponse,GetRepositoriesResponse
+from schemas.repos import CreateRepoRequest,CreateRepoResponse,GetRepositoriesResponse,FileResponse,RepoResponse
 from db.database import get_db
 from sqlalchemy.orm import Session
 import uuid
@@ -9,7 +9,7 @@ from core.embedding import embeddings
 from core.keys import CHROMA_CLOUD_KEY,CHROMA_TENANT_KEY
 from langchain_chroma import Chroma
 from core.vector_store import get_vector_store as create_vector_store
-
+from models.files import db_files
 
 router=APIRouter(
   prefix="/repo",
@@ -64,6 +64,7 @@ def create_repo(
     return new_repo
   
   except Exception as e:
+    db.rollback()
     raise HTTPException(status_code=400,detail="something went wrong")
   
 @router.get("/get-repositories",response_model=GetRepositoriesResponse)
@@ -75,11 +76,36 @@ def get_repos(
   if not user:
     raise HTTPException(status_code=400,detail="invalid user id")
   
+
+
   try:
+    repo_responses=[]
+
     repos=db.query(db_repo).filter(db_repo.user_id==user_id).all()
 
+    for repo in repos:
+
+      curr_files = (
+          db.query(db_files.file_id, db_files.file_name)
+          .filter(db_files.repo_id == repo.repo_id)
+          .all()
+      )
+      
+      file_responses = [
+          FileResponse(file_id=file_id, file_name=file_name)
+          for file_id, file_name in curr_files
+      ]
+      repo_responses.append(
+        RepoResponse(
+          repo_id=repo.repo_id,
+          repo_name=repo.repo_name,
+          no_docs=repo.no_docs,
+          files=file_responses
+        )
+      )
+
     return GetRepositoriesResponse(
-      repositories=repos
+      repositories=repo_responses
     )
   except Exception as e:
     raise HTTPException(status_code=400,detail="unexpedted error occur")

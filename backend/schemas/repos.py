@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel,Field
 from typing import List
 
 class CreateRepoRequest(BaseModel):
@@ -12,14 +12,19 @@ class CreateRepoResponse(BaseModel):
   no_docs:int
 
 
+class FileResponse(BaseModel):
+  file_id: str
+  file_name: str
 
+        
 class RepoResponse(BaseModel):
-    repo_id: str
-    repo_name: str
-    no_docs: int
+  repo_id: str
+  repo_name: str
+  no_docs: int
+  files: List[FileResponse] = Field(default_factory=list)
 
-    class Config:
-        from_attributes = True 
+  class Config:
+      from_attributes = True
 
 class GetRepositoriesResponse(BaseModel):
-    repositories: List[RepoResponse]
+  repositories: List[RepoResponse]

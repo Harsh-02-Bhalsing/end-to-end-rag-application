@@ -1,6 +1,5 @@
 from fastapi import APIRouter,Depends,HTTPException
 from sqlalchemy.orm import Session
-from db.database import get_db
 from schemas.chat import ChatRequest,ChatResponse
 from core.vector_store import get_vector_store
 from core.llm_context import get_context_string 
@@ -12,8 +11,7 @@ router=APIRouter(
 
 @router.post("/chat",response_model=ChatResponse)
 def ai_chat(
-  request:ChatRequest,
-  db:Session=Depends(get_db)
+  request:ChatRequest
 ):
   chunks=[]
   user_id=request.user_id

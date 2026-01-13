@@ -5,6 +5,9 @@ from db.database import get_db
 from models.repos import db_repo
 from core.vector_store import get_vector_store
 from models.users import db_user
+from models.files import db_files
+from sqlalchemy.exc import IntegrityError
+import uuid
 router=APIRouter(
   prefix="/files",
   tags=["files"]
@@ -55,12 +58,29 @@ async def upload_file(
     vector_store=get_vector_store(repo_id)
     vector_store.add_documents(documents)
 
+    file_id=f"file_{uuid.uuid4().hex[:8]}" 
+
+    new_file=db_files(
+      file_id=file_id,
+      file_name=file.filename,
+      repo_id=repo_id
+    )
+    db.add(new_file)
+
     repo=db.query(db_repo).filter(db_repo.user_id==user_id,db_repo.repo_id==repo_id).first()
     repo.no_docs=repo.no_docs+1
+
     db.commit()
     db.refresh(repo)
-
+    
+  except IntegrityError:
+    db.rollback()
+    raise HTTPException(status_code=409,detail="Duplicate document detected")
   except ValueError as e:
+    db.rollback()
+    raise HTTPException(status_code=400,detail=str(e))
+  except Exception as e:
+    db.rollback()
     raise HTTPException(status_code=400,detail=str(e))
   
   return {
