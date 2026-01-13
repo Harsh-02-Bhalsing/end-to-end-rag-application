@@ -212,10 +212,20 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function handleFileSelection(file) {
         // Check file type
-        if (!file.name.endsWith('.txt')) {
-            showMessage('Please select a .txt file', 'error');
+
+        const allowedExtensions = ['.txt', '.pdf', '.csv'];
+
+        const fileName = file.name.toLowerCase();
+
+        if (!allowedExtensions.some(ext => fileName.endsWith(ext))) {
+            showMessage('Please select a .txt, .pdf, or .csv file', 'error');
             return;
         }
+
+        // if (!file.name.endsWith('.txt')) {
+        //     showMessage('Please select a .txt file', 'error');
+        //     return;
+        // }
 
         selectedFile = file;
         selectedFileDiv.textContent = `Selected: ${file.name}`;
@@ -243,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('user_id', userId);
             formData.append('repo_id',currentRepo.repo_id)
 
-            const response = await fetch(`${API_BASE_URL}repo/upload-document`, {
+            const response = await fetch(`${API_BASE_URL}files/upload-file`, {
                 method: 'POST',
                 body: formData
             });
