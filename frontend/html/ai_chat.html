@@ -26,23 +26,34 @@
             <!-- Sidebar for repository selection -->
             <aside class="sidebar">
                 <div class="sidebar-header">
-                    <h3 class="sidebar-title">Select Repository</h3>
+                    <h3 class="sidebar-title">Select Repositories</h3>
+                    <p class="sidebar-subtitle">Choose one or more repositories to chat with</p>
                 </div>
                 <div class="sidebar-content">
                     <!-- Loading state -->
                     <div id="repoLoading" class="repo-loading">
                         <div class="loading-spinner"></div>
+                        <p class="loading-text">Loading repositories...</p>
                     </div>
                     
-                    <!-- Repository selector -->
-                    <div id="repoSelector" class="repo-selector">
-                        <select id="repositorySelect" class="repo-select">
-                            <option value="">Select a repository</option>
-                        </select>
+                    <!-- Repository list with checkboxes -->
+                    <div id="repoList" class="repo-list">
+                        <!-- Repository items will be dynamically added here -->
                     </div>
 
-                    <!-- Selected repository info -->
-                    <div id="selectedRepoInfo" class="selected-repo-info"></div>
+                    <!-- Empty state -->
+                    <div id="emptyRepoState" class="empty-repo-state">
+                        <p class="empty-text">No repositories found</p>
+                        <button class="create-repo-link" onclick="window.location.href='home.html'">Create Repository</button>
+                    </div>
+
+                    <!-- Selected repositories info -->
+                    <div id="selectedRepoInfo" class="selected-repo-info">
+                        <div class="selected-header">
+                            <span class="selected-count">0 repositories selected</span>
+                            <button class="clear-selection" id="clearSelection">Clear All</button>
+                        </div>
+                    </div>
                 </div>
             </aside>
 
@@ -51,7 +62,7 @@
                 <!-- Repository status banner -->
                 <div id="repoStatus" class="repo-status">
                     <span class="status-icon">ℹ️</span>
-                    <span class="status-text">No repository selected</span>
+                    <span class="status-text">No repositories selected</span>
                 </div>
 
                 <!-- Chat messages container -->
@@ -60,7 +71,7 @@
                     <div class="welcome-message">
                         <div class="welcome-icon">🤖</div>
                         <h3 class="welcome-title">Welcome to RAGAI Chat!</h3>
-                        <p class="welcome-description">Select a repository to start chatting with your documents.</p>
+                        <p class="welcome-description">Select one or more repositories from the sidebar to start chatting with your documents.</p>
                     </div>
                 </div>
 

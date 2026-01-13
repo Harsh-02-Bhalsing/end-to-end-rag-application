@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+sqlalchemy
+langchain
+langchain-google-genai
+langchain-chroma
+langchain_text_splitters
+multipart
+python-multipart
+PyPDF2
+langchain-huggingface
+sentence_transformers

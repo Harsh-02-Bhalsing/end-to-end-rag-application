@@ -107,7 +107,7 @@ body {
 
 /* Sidebar */
 .sidebar {
-    width: 320px;
+    width: 340px;
     background: rgba(25, 25, 25, 0.8);
     border-right: 1px solid #303030;
     display: flex;
@@ -124,11 +124,18 @@ body {
     font-size: 1.2rem;
     font-weight: 600;
     color: #ffffff;
+    margin-bottom: 5px;
+}
+
+.sidebar-subtitle {
+    font-size: 0.85rem;
+    color: #909090;
+    font-weight: 400;
 }
 
 .sidebar-content {
     flex: 1;
-    padding: 25px;
+    padding: 20px;
     overflow-y: auto;
 }
 
@@ -151,9 +158,15 @@ body {
 
 /* Repository loading */
 .repo-loading {
-    display: flex;
+    display: none;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     padding: 40px 0;
+}
+
+.repo-loading.show {
+    display: flex;
 }
 
 .loading-spinner {
@@ -163,80 +176,183 @@ body {
     border-top-color: #667eea;
     border-radius: 50%;
     animation: spin 1s linear infinite;
+    margin-bottom: 15px;
 }
 
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
 
-/* Repository selector */
-.repo-selector {
-    animation: fadeIn 0.4s ease;
+.loading-text {
+    font-size: 0.9rem;
+    color: #909090;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Repository list */
+.repo-list {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.repo-select {
-    width: 100%;
-    padding: 14px 16px;
-    font-size: 1rem;
-    background: rgba(35, 35, 35, 0.9);
+.repo-list.show {
+    display: flex;
+}
+
+.repo-item {
+    background: rgba(35, 35, 35, 0.6);
     border: 1.5px solid #404040;
     border-radius: 10px;
-    color: #ffffff;
+    padding: 15px;
     cursor: pointer;
     transition: all 0.3s ease;
-    outline: none;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
 }
 
-.repo-select:hover {
+.repo-item:hover {
+    background: rgba(45, 45, 45, 0.8);
     border-color: #505050;
 }
 
-.repo-select:focus {
+.repo-item.selected {
+    background: rgba(102, 126, 234, 0.15);
     border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.repo-select option {
-    background: #2d2d2d;
+.repo-checkbox {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border: 2px solid #505050;
+    border-radius: 5px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    margin-top: 2px;
+}
+
+.repo-item.selected .repo-checkbox {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+}
+
+.repo-checkbox::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
     color: #ffffff;
-    padding: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    transition: transform 0.2s ease;
+}
+
+.repo-item.selected .repo-checkbox::after {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.repo-details {
+    flex: 1;
+}
+
+.repo-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 6px;
+}
+
+.repo-meta {
+    font-size: 0.85rem;
+    color: #909090;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Empty repository state */
+.empty-repo-state {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.empty-repo-state.show {
+    display: flex;
+}
+
+.empty-text {
+    font-size: 0.95rem;
+    color: #909090;
+    margin-bottom: 15px;
+}
+
+.create-repo-link {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.create-repo-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
 }
 
 /* Selected repository info */
 .selected-repo-info {
+    display: none;
     margin-top: 20px;
-    padding: 20px;
+    padding: 15px;
     background: rgba(102, 126, 234, 0.1);
     border: 1px solid rgba(102, 126, 234, 0.3);
     border-radius: 10px;
-    display: none;
-    animation: fadeIn 0.4s ease;
 }
 
 .selected-repo-info.show {
     display: block;
 }
 
-.selected-repo-info h4 {
-    font-size: 1rem;
-    color: #667eea;
-    margin-bottom: 8px;
+.selected-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.selected-repo-info p {
+.selected-count {
     font-size: 0.9rem;
-    color: #b0b0b0;
+    font-weight: 600;
+    color: #667eea;
+}
+
+.clear-selection {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: transparent;
+    color: #909090;
+    border: 1px solid #505050;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.clear-selection:hover {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: #dc3545;
+    color: #ff6b6b;
 }
 
 /* Chat main area */
@@ -311,6 +427,17 @@ body {
     animation: fadeIn 0.6s ease;
 }
 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .welcome-icon {
     font-size: 5rem;
     margin-bottom: 25px;
@@ -372,12 +499,22 @@ body {
     background: rgba(45, 45, 45, 0.8);
 }
 
-.message-content {
+.message-wrapper {
+    display: flex;
+    flex-direction: column;
     max-width: 70%;
+}
+
+.message.user .message-wrapper {
+    align-items: flex-end;
+}
+
+.message-content {
     padding: 16px 20px;
     border-radius: 12px;
     font-size: 0.95rem;
     line-height: 1.6;
+    word-wrap: break-word;
 }
 
 .message.user .message-content {
@@ -393,29 +530,37 @@ body {
     border-bottom-left-radius: 4px;
 }
 
-.message-thinking {
+.message-time {
+    font-size: 0.75rem;
+    color: #707070;
+    margin-top: 6px;
+    padding: 0 8px;
+}
+
+/* Typing indicator */
+.typing-indicator {
     display: flex;
     gap: 6px;
     padding: 16px 20px;
 }
 
-.thinking-dot {
+.typing-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
     background: #667eea;
-    animation: thinking 1.4s ease-in-out infinite;
+    animation: typing 1.4s ease-in-out infinite;
 }
 
-.thinking-dot:nth-child(2) {
+.typing-dot:nth-child(2) {
     animation-delay: 0.2s;
 }
 
-.thinking-dot:nth-child(3) {
+.typing-dot:nth-child(3) {
     animation-delay: 0.4s;
 }
 
-@keyframes thinking {
+@keyframes typing {
     0%, 60%, 100% {
         transform: translateY(0);
         opacity: 0.5;
@@ -504,7 +649,7 @@ body {
 /* Responsive design */
 @media (max-width: 1024px) {
     .sidebar {
-        width: 280px;
+        width: 300px;
     }
 }
 
@@ -516,7 +661,7 @@ body {
     .sidebar {
         position: absolute;
         left: -100%;
-        width: 280px;
+        width: 300px;
         height: calc(100vh - 81px);
         z-index: 50;
         transition: left 0.3s ease;
@@ -531,7 +676,7 @@ body {
         padding: 20px;
     }
     
-    .message-content {
+    .message-wrapper {
         max-width: 85%;
     }
     
@@ -568,7 +713,6 @@ body {
     }
     
     .message-content {
-        max-width: 90%;
         padding: 12px 16px;
         font-size: 0.9rem;
     }
@@ -577,5 +721,9 @@ body {
         width: 35px;
         height: 35px;
         font-size: 1rem;
+    }
+    
+    .message-wrapper {
+        max-width: 90%;
     }
 }

@@ -1,13 +1,14 @@
 /**
  * ai_chat.js
- * Handles AI chat functionality with document repositories
+ * Handles AI chat functionality with multiple document repositories
  */
 
 // API Configuration (to be updated with actual backend URL)
-const API_BASE_URL = 'http://localhost:8000/'; // Change this to your backend URL
+const API_BASE_URL = 'http://localhost:8000'; // Change this to your backend URL
 
 // Global variables
-let selectedRepository = null;
+let repositories = []; // All available repositories
+let selectedRepositories = []; // Currently selected repositories
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -18,13 +19,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
+    console.log('User ID:', userId); // Debug log
+
     // Get DOM elements
     const backBtn = document.getElementById('backBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const repoLoading = document.getElementById('repoLoading');
-    const repoSelector = document.getElementById('repoSelector');
-    const repositorySelect = document.getElementById('repositorySelect');
+    const repoList = document.getElementById('repoList');
+    const emptyRepoState = document.getElementById('emptyRepoState');
     const selectedRepoInfo = document.getElementById('selectedRepoInfo');
+    const clearSelectionBtn = document.getElementById('clearSelection');
     const repoStatus = document.getElementById('repoStatus');
     const chatMessages = document.getElementById('chatMessages');
     const messageInput = document.getElementById('messageInput');
@@ -49,92 +53,171 @@ document.addEventListener('DOMContentLoaded', function() {
      * Load user repositories
      */
     async function loadRepositories() {
+        console.log('Loading repositories...'); // Debug log
+        
         repoLoading.classList.add('show');
-        repoSelector.classList.remove('show');
+        repoList.classList.remove('show');
+        emptyRepoState.classList.remove('show');
 
         try {
-            const response = await fetch(`${API_BASE_URL}repo/get-repositories?user_id=${userId}`);
+            const response = await fetch(`${API_BASE_URL}/repo/get-repositories?user_id=${userId}`);
+            
+            console.log('Response status:', response.status); // Debug log
+            
             const data = await response.json();
+            console.log('Response data:', data); // Debug log
 
             if (response.ok && data.repositories) {
-                populateRepositorySelect(data.repositories);
+                repositories = data.repositories;
+                repoLoading.classList.remove('show');
+                repoLoading.style.display = 'none';
+
+                if (repositories.length > 0) {
+                    emptyRepoState.classList.remove('show');
+                    emptyRepoState.style.display = 'none';
+                    displayRepositories(repositories);
+                } else {
+                    emptyRepoState.classList.add('show');
+                    emptyRepoState.style.display = 'flex'; // or block
+                }
+
             } else {
                 console.error('Failed to load repositories');
+                repoLoading.classList.remove('show');
+                emptyRepoState.classList.add('show');
             }
         } catch (error) {
             console.error('Error loading repositories:', error);
-        } finally {
             repoLoading.classList.remove('show');
-            repoSelector.classList.add('show');
+            repoLoading.style.display = 'none';
+            emptyRepoState.classList.add('show');
         }
     }
 
     /**
-     * Populate repository select dropdown
-     * @param {Array} repositories - List of repositories
+     * Display repositories as selectable list items
+     * @param {Array} repos - List of repositories
      */
-    function populateRepositorySelect(repositories) {
-        // Clear existing options except the first one
-        repositorySelect.innerHTML = '<option value="">Select a repository</option>';
-        
-        repositories.forEach(repo => {
-            const option = document.createElement('option');
-            option.value = repo.repo_name;
-            option.textContent = `${repo.repo_name} (${repo.no_docs || 0} docs)`;
-            option.dataset.docs = repo.no_docs || 0;
-            repositorySelect.appendChild(option);
+    function displayRepositories(repos) {
+        console.log('Displaying', repos.length, 'repositories'); // Debug log
+        repoLoading.classList.remove('show');
+        repoLoading.style.display = 'none';
+
+        emptyRepoState.classList.remove('show');
+        emptyRepoState.style.display = 'none';
+
+        repoList.innerHTML = '';
+        repoLoading.classList.remove('show');
+        emptyRepoState.classList.remove('show');
+
+        repos.forEach(repo => {
+            const repoItem = document.createElement('div');
+            repoItem.className = 'repo-item';
+            repoItem.dataset.repoId = repo.repo_id;
+            repoItem.dataset.repoName = repo.repo_name;
+            
+            repoItem.innerHTML = `
+                <div class="repo-checkbox"></div>
+                <div class="repo-details">
+                    <div class="repo-name">${repo.repo_name}</div>
+                    <div class="repo-meta">
+                        <span>📄</span>
+                        <span>${repo.no_docs || 0} document${repo.no_docs !== 1 ? 's' : ''}</span>
+                    </div>
+                </div>
+            `;
+
+            // Add click handler to toggle selection
+            repoItem.addEventListener('click', function() {
+                toggleRepositorySelection(repo);
+            });
+
+            repoList.appendChild(repoItem);
         });
+
+        repoList.classList.add('show');
     }
 
     /**
-     * Handle repository selection
+     * Toggle repository selection
+     * @param {Object} repo - Repository object
      */
-    repositorySelect.addEventListener('change', function() {
-        const repoName = this.value;
+    function toggleRepositorySelection(repo) {
+        const index = selectedRepositories.findIndex(r => r.repo_id === repo.repo_id);
         
-        if (!repoName) {
-            // No repository selected
-            selectedRepository = null;
-            selectedRepoInfo.classList.remove('show');
-            updateRepoStatus('No repository selected', 'ℹ️');
-            messageInput.disabled = true;
-            sendBtn.disabled = true;
-            clearChat();
-            return;
+        if (index > -1) {
+            // Already selected, remove it
+            selectedRepositories.splice(index, 1);
+            console.log('Deselected:', repo.repo_name); // Debug log
+        } else {
+            // Not selected, add it
+            selectedRepositories.push(repo);
+            console.log('Selected:', repo.repo_name); // Debug log
         }
 
-        // Get selected option data
-        const selectedOption = this.options[this.selectedIndex];
-        const docCount = selectedOption.dataset.docs;
+        updateUI();
+    }
 
-        // Update selected repository
-        selectedRepository = {
-            name: repoName,
-            docs: docCount
-        };
-
-        // Update UI
-        displaySelectedRepo(repoName, docCount);
-        updateRepoStatus(`Selected: ${repoName}`, '✓');
-        messageInput.disabled = false;
-        sendBtn.disabled = false;
-        messageInput.focus();
-        clearChat();
-        addWelcomeMessage(repoName);
+    /**
+     * Clear all selections
+     */
+    clearSelectionBtn.addEventListener('click', function() {
+        selectedRepositories = [];
+        updateUI();
+        console.log('Cleared all selections'); // Debug log
     });
 
     /**
-     * Display selected repository info
-     * @param {string} repoName - Repository name
-     * @param {number} docCount - Number of documents
+     * Update UI based on current selections
      */
-    function displaySelectedRepo(repoName, docCount) {
-        selectedRepoInfo.innerHTML = `
-            <div class="repo-info-title">Active Repository</div>
-            <div class="repo-info-name">${repoName}</div>
-            <div class="repo-info-docs">📄 ${docCount} documents</div>
-        `;
-        selectedRepoInfo.classList.add('show');
+    function updateUI() {
+        // Update visual selection state of repository items
+        const repoItems = document.querySelectorAll('.repo-item');
+        repoItems.forEach(item => {
+            const repoId = item.dataset.repoId;
+            const isSelected = selectedRepositories.some(r => r.repo_id === repoId);
+            
+            if (isSelected) {
+                item.classList.add('selected');
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+
+        // Update selected info panel
+        const count = selectedRepositories.length;
+        if (count > 0) {
+            selectedRepoInfo.classList.add('show');
+            selectedRepoInfo.querySelector('.selected-count').textContent = 
+                `${count} repository${count !== 1 ? 's' : ''} selected`;
+        } else {
+            selectedRepoInfo.classList.remove('show');
+        }
+
+        // Update status banner
+        if (count > 0) {
+            const repoNames = selectedRepositories.map(r => r.repo_name).join(', ');
+            updateRepoStatus(`Selected: ${repoNames}`, '✓');
+            repoStatus.classList.add('active');
+            
+            // Enable chat input
+            messageInput.disabled = false;
+            sendBtn.disabled = false;
+            messageInput.focus();
+        } else {
+            updateRepoStatus('No repositories selected', 'ℹ️');
+            repoStatus.classList.remove('active');
+            
+            // Disable chat input
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+        }
+
+        // Clear chat and show welcome message
+        clearChat();
+        if (count > 0) {
+            addWelcomeMessage();
+        }
     }
 
     /**
@@ -157,15 +240,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Add welcome message when repository is selected
-     * @param {string} repoName - Repository name
+     * Add welcome message when repositories are selected
      */
-    function addWelcomeMessage(repoName) {
+    function addWelcomeMessage() {
+        const repoNames = selectedRepositories.map(r => r.repo_name).join(', ');
         chatMessages.innerHTML = `
             <div class="welcome-message">
                 <div class="welcome-icon">🤖</div>
                 <h3 class="welcome-title">Ready to Chat!</h3>
-                <p class="welcome-description">Ask me anything about the documents in "${repoName}"</p>
+                <p class="welcome-description">Ask me anything about the documents in: <strong>${repoNames}</strong></p>
             </div>
         `;
     }
@@ -185,16 +268,30 @@ document.addEventListener('DOMContentLoaded', function() {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}`;
         
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar';
+        avatar.textContent = sender === 'user' ? '👤' : '🤖';
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message-wrapper';
+        
         const messageContent = document.createElement('div');
         messageContent.className = 'message-content';
         messageContent.textContent = content;
         
         const messageTime = document.createElement('div');
         messageTime.className = 'message-time';
-        messageTime.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        messageTime.textContent = new Date().toLocaleTimeString([], { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
         
-        messageDiv.appendChild(messageContent);
-        messageDiv.appendChild(messageTime);
+        wrapper.appendChild(messageContent);
+        wrapper.appendChild(messageTime);
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(wrapper);
+        
         chatMessages.appendChild(messageDiv);
         
         // Scroll to bottom
@@ -208,13 +305,26 @@ document.addEventListener('DOMContentLoaded', function() {
         const typingDiv = document.createElement('div');
         typingDiv.className = 'message assistant';
         typingDiv.id = 'typingIndicator';
-        typingDiv.innerHTML = `
-            <div class="typing-indicator">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            </div>
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar';
+        avatar.textContent = '🤖';
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message-wrapper';
+        
+        const indicator = document.createElement('div');
+        indicator.className = 'typing-indicator';
+        indicator.innerHTML = `
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
         `;
+        
+        wrapper.appendChild(indicator);
+        typingDiv.appendChild(avatar);
+        typingDiv.appendChild(wrapper);
+        
         chatMessages.appendChild(typingDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
@@ -235,9 +345,17 @@ document.addEventListener('DOMContentLoaded', function() {
     async function sendMessage() {
         const message = messageInput.value.trim();
         
-        if (!message || !selectedRepository) {
+        if (!message || selectedRepositories.length === 0) {
+            console.log('No message or no repositories selected'); // Debug log
             return;
         }
+
+        console.log('Sending message:', message); // Debug log
+        console.log('Selected repositories:', selectedRepositories); // Debug log
+
+        // Extract repo_ids and repo_names from selected repositories
+        const repoIds = selectedRepositories.map(r => r.repo_id);
+        const repoNames = selectedRepositories.map(r => r.repo_name);
 
         // Add user message to chat
         addMessage(message, 'user');
@@ -254,27 +372,39 @@ document.addEventListener('DOMContentLoaded', function() {
         showTypingIndicator();
 
         try {
+            console.log('Making API call to:', `${API_BASE_URL}/ai/chat`); // Debug log
+            
             // Make API call to get AI response
-            const response = await fetch(`${API_BASE_URL}/chat`, {
+            const response = await fetch(`${API_BASE_URL}/ai/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     user_id: userId,
-                    repo_name: selectedRepository.name,
-                    query: message
+                    query: message,
+                    repo_ids: repoIds,
+                    repo_names: repoNames
                 })
             });
 
+            console.log('Response status:', response.status); // Debug log
+
             const data = await response.json();
+            console.log('Response data:', data); // Debug log
 
             // Remove typing indicator
             removeTypingIndicator();
 
-            if (response.ok && data.success) {
+            if (response.ok) {
                 // Add AI response to chat
-                addMessage(data.response || 'I apologize, but I could not generate a response.', 'assistant');
+                const aiResponse = data.response || 'I apologize, but I could not generate a response.';
+                addMessage(aiResponse, 'assistant');
+                
+                // Optionally log which repositories were used in the response
+                if (data.response_repo_names && data.response_repo_names.length > 0) {
+                    console.log('Response used repositories:', data.response_repo_names);
+                }
             } else {
                 addMessage('Sorry, I encountered an error processing your request. Please try again.', 'assistant');
             }
