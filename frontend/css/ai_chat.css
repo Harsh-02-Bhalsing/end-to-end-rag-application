@@ -285,7 +285,7 @@ body {
 
 /* Repository files section */
 .repo-files-section {
-    padding: 12px 15px;
+    padding: 0 15px;
     background: rgba(25, 25, 25, 0.5);
     max-height: 0;
     overflow: hidden;
