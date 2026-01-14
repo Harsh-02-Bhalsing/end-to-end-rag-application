@@ -25,7 +25,7 @@
         <main class="main-content">
             <div class="page-header">
                 <h2 class="page-title">Document Management</h2>
-                <p class="page-subtitle">Upload documents to your repositories</p>
+                <p class="page-subtitle">Upload and manage documents in your repositories</p>
             </div>
 
             <!-- Loading state -->
@@ -57,8 +57,8 @@
             <div class="modal-body">
                 <div class="file-upload-area" id="fileUploadArea">
                     <div class="upload-icon">📄</div>
-                    <p class="upload-text">Click to select a text file or drag and drop</p>
-                    <p class="upload-hint">Supported formats: .txt</p>
+                    <p class="upload-text">Click to select a file or drag and drop</p>
+                    <p class="upload-hint">Supported formats: .txt, .pdf, .csv</p>
                     <input type="file" id="fileInput" accept=".txt,.pdf,.csv" style="display: none;">
                 </div>
                 <div id="selectedFile" class="selected-file"></div>
@@ -74,7 +74,41 @@
         </div>
     </div>
 
+    <!-- Modal for viewing repository files -->
+    <div id="filesModal" class="modal">
+        <div class="modal-content files-modal-content">
+            <div class="modal-header">
+                <div class="files-modal-header-content">
+                    <h3 class="modal-title" id="filesModalTitle">Repository Files</h3>
+                    <span class="files-count" id="filesCount">0 files</span>
+                </div>
+                <button class="modal-close" id="closeFilesModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Empty files state -->
+                <div id="emptyFilesState" class="empty-files-state">
+                    <div class="empty-files-icon">📄</div>
+                    <p class="empty-files-text">No files uploaded yet</p>
+                    <p class="empty-files-hint">Click the upload button to add documents</p>
+                </div>
+
+                <!-- Files list -->
+                <div id="filesList" class="files-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closeFilesBtn">Close</button>
+                <button class="btn btn-primary" id="uploadFromFilesModal">
+                    <span>Upload New File</span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Link to external JavaScript file -->
     <script src="../js/add_docs.js"></script>
 </body>
 </html>
+

@@ -446,3 +446,5 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load repositories on page load
     loadRepositories();
 });
+
+//i have provided you with the updated files for get_repositories  endpoint at backend side and also schema of get_repositories in previous version i used to only send list of repositories from backend and on frontend i show repo name and no. of uploaded docs but now in updated files now i send list of files uploaded in each repository and now i want to display it on the ai_chat  page on forntend . so i want you to update the ai_chat page to show list of uploaded files for each repository instead of document count . for that i have provided you the html , css and js files for ai_chat page so update the files according to the requirement and give complete code for each files
