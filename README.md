@@ -60,8 +60,8 @@ End_to_End_RAG_Application/
 
 1️⃣ Clone the repository
 
-git clone https://github.com/your-username/End_to_End_RAG_Application.git
-cd End_to_End_RAG_Application
+git clone https://github.com/Harsh-02-Bhalsing/end-to-end-rag-application.git
+cd end-to-end-rag-application
 
 2️⃣ Backend Setup
 
