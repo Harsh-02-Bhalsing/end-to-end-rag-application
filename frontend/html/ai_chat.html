@@ -94,8 +94,34 @@
         </div>
     </div>
 
+    <!-- Modal for viewing repository files -->
+    <div id="filesModal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title-section">
+                    <h3 class="modal-title" id="filesModalTitle">Repository Files</h3>
+                    <span class="files-count" id="filesCount">0 files</span>
+                </div>
+                <button class="modal-close" id="closeFilesModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Empty files state -->
+                <div id="emptyFilesState" class="empty-files-state">
+                    <div class="empty-files-icon">📄</div>
+                    <p class="empty-files-text">No files in this repository</p>
+                </div>
+
+                <!-- Files list -->
+                <div id="filesListModal" class="files-list-modal"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-close" id="closeFilesBtnModal">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Link to external JavaScript file -->
     <script src="../js/ai_chat.js"></script>
 </body>
 </html>
-

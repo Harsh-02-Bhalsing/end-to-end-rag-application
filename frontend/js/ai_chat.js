@@ -1,13 +1,13 @@
 /**
  * ai_chat.js
- * Handles AI chat functionality with multiple document repositories
+ * Handles AI chat functionality with multiple document repositories and file display
  */
 
 // API Configuration (to be updated with actual backend URL)
 const API_BASE_URL = 'http://localhost:8000'; // Change this to your backend URL
 
 // Global variables
-let repositories = []; // All available repositories
+let repositories = []; // All available repositories with files
 let selectedRepositories = []; // Currently selected repositories
 
 // Wait for DOM to be fully loaded
@@ -33,6 +33,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatMessages = document.getElementById('chatMessages');
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
+    
+    // Files modal elements
+    const filesModal = document.getElementById('filesModal');
+    const closeFilesModal = document.getElementById('closeFilesModal');
+    const closeFilesBtnModal = document.getElementById('closeFilesBtnModal');
+    const filesModalTitle = document.getElementById('filesModalTitle');
+    const filesCount = document.getElementById('filesCount');
+    const filesListModal = document.getElementById('filesListModal');
+    const emptyFilesState = document.getElementById('emptyFilesState');
 
     /**
      * Navigate back to home
@@ -56,10 +65,15 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Loading repositories...'); // Debug log
         
         repoLoading.classList.add('show');
+        repoLoading.style.display = 'flex';
         repoList.classList.remove('show');
+        repoList.style.display = 'none';
         emptyRepoState.classList.remove('show');
+        emptyRepoState.style.display = 'none';
 
         try {
+            console.log('Fetching from:', `${API_BASE_URL}/repo/get-repositories?user_id=${userId}`); // Debug log
+            
             const response = await fetch(`${API_BASE_URL}/repo/get-repositories?user_id=${userId}`);
             
             console.log('Response status:', response.status); // Debug log
@@ -67,75 +81,135 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             console.log('Response data:', data); // Debug log
 
+            repoLoading.classList.remove('show');
+            repoLoading.style.display = 'none';
+
             if (response.ok && data.repositories) {
                 repositories = data.repositories;
-                repoLoading.classList.remove('show');
-                repoLoading.style.display = 'none';
+                console.log('Repositories with files:', repositories); // Debug log
 
                 if (repositories.length > 0) {
-                    emptyRepoState.classList.remove('show');
-                    emptyRepoState.style.display = 'none';
                     displayRepositories(repositories);
                 } else {
                     emptyRepoState.classList.add('show');
-                    emptyRepoState.style.display = 'flex'; // or block
+                    emptyRepoState.style.display = 'flex';
                 }
-
             } else {
                 console.error('Failed to load repositories');
-                repoLoading.classList.remove('show');
                 emptyRepoState.classList.add('show');
+                emptyRepoState.style.display = 'flex';
             }
         } catch (error) {
             console.error('Error loading repositories:', error);
             repoLoading.classList.remove('show');
             repoLoading.style.display = 'none';
             emptyRepoState.classList.add('show');
+            emptyRepoState.style.display = 'flex';
         }
     }
 
     /**
-     * Display repositories as selectable list items
+     * Display repositories as selectable list items with file previews
      * @param {Array} repos - List of repositories
      */
     function displayRepositories(repos) {
         console.log('Displaying', repos.length, 'repositories'); // Debug log
-        repoLoading.classList.remove('show');
-        repoLoading.style.display = 'none';
-
-        emptyRepoState.classList.remove('show');
-        emptyRepoState.style.display = 'none';
-
+        
         repoList.innerHTML = '';
-        repoLoading.classList.remove('show');
-        emptyRepoState.classList.remove('show');
 
         repos.forEach(repo => {
-            const repoItem = document.createElement('div');
-            repoItem.className = 'repo-item';
-            repoItem.dataset.repoId = repo.repo_id;
-            repoItem.dataset.repoName = repo.repo_name;
-            
-            repoItem.innerHTML = `
-                <div class="repo-checkbox"></div>
-                <div class="repo-details">
-                    <div class="repo-name">${repo.repo_name}</div>
-                    <div class="repo-meta">
-                        <span>📄</span>
-                        <span>${repo.no_docs || 0} document${repo.no_docs !== 1 ? 's' : ''}</span>
-                    </div>
-                </div>
-            `;
-
-            // Add click handler to toggle selection
-            repoItem.addEventListener('click', function() {
-                toggleRepositorySelection(repo);
-            });
-
+            const repoItem = createRepositoryItem(repo);
             repoList.appendChild(repoItem);
         });
 
         repoList.classList.add('show');
+        repoList.style.display = 'flex';
+    }
+
+    /**
+     * Create repository item element with file preview
+     * @param {Object} repo - Repository object
+     * @returns {HTMLElement} Repository item element
+     */
+    function createRepositoryItem(repo) {
+        const repoItem = document.createElement('div');
+        repoItem.className = 'repo-item';
+        repoItem.dataset.repoId = repo.repo_id;
+        repoItem.dataset.repoName = repo.repo_name;
+        
+        // Create header section
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'repo-item-header';
+        headerDiv.innerHTML = `
+            <div class="repo-checkbox"></div>
+            <div class="repo-item-info">
+                <div class="repo-name">${repo.repo_name}</div>
+                <div class="repo-meta">
+                    <span>📄</span>
+                    <span>${repo.no_docs || 0} document${repo.no_docs !== 1 ? 's' : ''}</span>
+                </div>
+            </div>
+        `;
+        
+        // Add click handler to header for selection
+        headerDiv.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleRepositorySelection(repo);
+        });
+        
+        repoItem.appendChild(headerDiv);
+        
+        // Create files section (shown when selected)
+        const filesSection = document.createElement('div');
+        filesSection.className = 'repo-files-section';
+        
+        if (repo.files && repo.files.length > 0) {
+            // Create files header with view all button
+            const filesHeader = document.createElement('div');
+            filesHeader.className = 'repo-files-header';
+            filesHeader.innerHTML = `
+                <span class="repo-files-title">Files in this repository:</span>
+            `;
+            
+            if (repo.files.length > 3) {
+                const viewAllBtn = document.createElement('button');
+                viewAllBtn.className = 'view-all-files-btn';
+                viewAllBtn.textContent = `View all ${repo.files.length}`;
+                viewAllBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    openFilesModal(repo);
+                });
+                filesHeader.appendChild(viewAllBtn);
+            }
+            
+            filesSection.appendChild(filesHeader);
+            
+            // Create files list (show first 3)
+            const filesListDiv = document.createElement('div');
+            filesListDiv.className = 'repo-files-list';
+            
+            const filesToShow = repo.files.slice(0, 3);
+            filesToShow.forEach(file => {
+                const filePreview = document.createElement('div');
+                filePreview.className = 'file-preview-item';
+                filePreview.innerHTML = `
+                    <span class="file-preview-icon">📄</span>
+                    <span class="file-preview-name">${file.file_name}</span>
+                `;
+                filesListDiv.appendChild(filePreview);
+            });
+            
+            filesSection.appendChild(filesListDiv);
+        } else {
+            const noFilesDiv = document.createElement('div');
+            noFilesDiv.className = 'no-files-text';
+            noFilesDiv.textContent = 'No files uploaded yet';
+            filesSection.appendChild(noFilesDiv);
+        }
+        
+        repoItem.appendChild(filesSection);
+        
+        return repoItem;
     }
 
     /**
@@ -217,8 +291,84 @@ document.addEventListener('DOMContentLoaded', function() {
         clearChat();
         if (count > 0) {
             addWelcomeMessage();
+        } else {
+            // Show default welcome message
+            chatMessages.innerHTML = `
+                <div class="welcome-message">
+                    <div class="welcome-icon">🤖</div>
+                    <h3 class="welcome-title">Welcome to RAGAI Chat!</h3>
+                    <p class="welcome-description">Select one or more repositories from the sidebar to start chatting with your documents.</p>
+                </div>
+            `;
         }
     }
+
+    /**
+     * Open files modal to view all files in repository
+     * @param {Object} repo - Repository object
+     */
+    function openFilesModal(repo) {
+        console.log('Opening files modal for:', repo.repo_name); // Debug log
+        
+        filesModalTitle.textContent = repo.repo_name;
+        filesCount.textContent = `${repo.files.length} file${repo.files.length !== 1 ? 's' : ''}`;
+        
+        // Display files list
+        if (repo.files && repo.files.length > 0) {
+            displayFilesInModal(repo.files);
+            emptyFilesState.classList.remove('show');
+            emptyFilesState.style.display = 'none';
+            filesListModal.style.display = 'flex';
+        } else {
+            emptyFilesState.classList.add('show');
+            emptyFilesState.style.display = 'block';
+            filesListModal.style.display = 'none';
+        }
+        
+        filesModal.classList.add('show');
+    }
+
+    /**
+     * Display files in the modal
+     * @param {Array} files - Array of file objects
+     */
+    function displayFilesInModal(files) {
+        filesListModal.innerHTML = '';
+        
+        files.forEach(file => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item-modal';
+            
+            fileItem.innerHTML = `
+                <div class="file-item-info-modal">
+                    <span class="file-item-icon-modal">📄</span>
+                    <div class="file-item-details">
+                        <div class="file-item-name-modal">${file.file_name}</div>
+                        <div class="file-item-id-modal">ID: ${file.file_id}</div>
+                    </div>
+                </div>
+            `;
+            
+            filesListModal.appendChild(fileItem);
+        });
+    }
+
+    /**
+     * Close files modal
+     */
+    function closeFilesModalFunc() {
+        filesModal.classList.remove('show');
+    }
+
+    closeFilesModal.addEventListener('click', closeFilesModalFunc);
+    closeFilesBtnModal.addEventListener('click', closeFilesModalFunc);
+    
+    // Close modal when clicking on overlay
+    filesModal.addEventListener('click', function(e) {
+        if (e.target === filesModal || e.target.classList.contains('modal-overlay')) {
+            closeFilesModalFunc();
+        }
+    });
 
     /**
      * Update repository status banner
@@ -244,11 +394,13 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function addWelcomeMessage() {
         const repoNames = selectedRepositories.map(r => r.repo_name).join(', ');
+        const totalFiles = selectedRepositories.reduce((sum, r) => sum + (r.files ? r.files.length : 0), 0);
+        
         chatMessages.innerHTML = `
             <div class="welcome-message">
                 <div class="welcome-icon">🤖</div>
                 <h3 class="welcome-title">Ready to Chat!</h3>
-                <p class="welcome-description">Ask me anything about the documents in: <strong>${repoNames}</strong></p>
+                <p class="welcome-description">Ask me anything about the <strong>${totalFiles} document${totalFiles !== 1 ? 's' : ''}</strong> in: <strong>${repoNames}</strong></p>
             </div>
         `;
     }
@@ -446,5 +598,3 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load repositories on page load
     loadRepositories();
 });
-
-//i have provided you with the updated files for get_repositories  endpoint at backend side and also schema of get_repositories in previous version i used to only send list of repositories from backend and on frontend i show repo name and no. of uploaded docs but now in updated files now i send list of files uploaded in each repository and now i want to display it on the ai_chat  page on forntend . so i want you to update the ai_chat page to show list of uploaded files for each repository instead of document count . for that i have provided you the html , css and js files for ai_chat page so update the files according to the requirement and give complete code for each files
