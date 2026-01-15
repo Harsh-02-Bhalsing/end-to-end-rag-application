@@ -37,24 +37,17 @@ This project demonstrates how to build a **production-ready RAG system** with ba
 
 ---
 
-## 📂 Project Structure
+Screenshots :
 
-End_to_End_RAG_Application/
-│
-├── backend/
-│ ├── routers/
-│ ├── models/
-│ ├── core/
-│ ├── db/
-│ ├── main.py
-│ └── requirements.txt
-│
-├── frontend/
-│ ├── html/
-│ ├── css/
-│ └── js/
-│
-└── README.md
+<img width="1914" height="912" alt="image" src="https://github.com/user-attachments/assets/570b5f69-97a7-43f9-8d07-246c0dac26db" />
+<img width="1905" height="912" alt="image" src="https://github.com/user-attachments/assets/0d94a31f-997b-4d08-ab34-84573ecd7148" />
+<img width="1905" height="907" alt="image" src="https://github.com/user-attachments/assets/c1d08f71-21aa-4dfc-bddb-f404bc7dc043" />
+<img width="1906" height="910" alt="image" src="https://github.com/user-attachments/assets/6f074220-8d72-491a-96fe-afd1e0bb74cc" />
+<img width="1913" height="898" alt="image" src="https://github.com/user-attachments/assets/4c481c84-d7f0-4889-83b2-9c77901d0565" />
+<img width="1913" height="898" alt="image" src="https://github.com/user-attachments/assets/a8636ce2-13c3-4c44-9f18-8efb476491d8" />
+<img width="1907" height="921" alt="image" src="https://github.com/user-attachments/assets/4017d804-3b9f-45d9-b6df-7a3dfe9fb291" />
+
+
 
 🚀 How to Run the Project Locally
 
