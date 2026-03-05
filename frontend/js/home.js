@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const createRepoCard = document.getElementById('createRepoCard');
     const addDocsCard = document.getElementById('addDocsCard');
     const startChatCard = document.getElementById('startChatCard');
+    const savedQueriesCard = document.getElementById('savedQueriesCard');
     const createRepoModal = document.getElementById('createRepoModal');
     const closeModal = document.getElementById('closeModal');
     const cancelBtn = document.getElementById('cancelBtn');
@@ -67,6 +68,13 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     startChatCard.addEventListener('click', function() {
         window.location.href = 'ai_chat.html';
+    });
+
+    /**
+     * Navigate to saved queries page
+     */
+    savedQueriesCard.addEventListener('click', function() {
+        window.location.href = 'saved_queries.html';
     });
 
     /**

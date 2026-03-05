@@ -10,6 +10,250 @@ const API_BASE_URL = 'http://localhost:8000'; // Change this to your backend URL
 let repositories = []; // All available repositories with files
 let selectedRepositories = []; // Currently selected repositories
 
+/**
+ * Format AI response with structured, point-wise styling
+ * @param {string} text - Raw text response from AI
+ * @returns {string} - Formatted HTML string
+ */
+
+document.addEventListener('submit', function(e) {
+    e.preventDefault();
+});
+
+
+function formatAIResponse(text) {
+    // Check if text contains a Sources section
+    const sourcesMatch = text.match(/\*\*Sources:\*\*([\s\S]*?)$/);
+    let mainContent = text;
+    let sourcesContent = '';
+    
+    if (sourcesMatch) {
+        // Separate main content and sources
+        mainContent = text.substring(0, sourcesMatch.index).trim();
+        sourcesContent = sourcesMatch[1].trim();
+    }
+    
+    // Format main content
+    let html = formatMainContent(mainContent);
+    
+    // Format sources section if present
+    if (sourcesContent) {
+        html += formatSources(sourcesContent);
+    }
+    
+    return html;
+}
+
+/**
+ * Format the main content (non-sources part)
+ * @param {string} text - Main content text
+ * @returns {string} - Formatted HTML
+ */
+function formatMainContent(text) {
+    const lines = text.split('\n');
+    let html = '';
+    let inBulletList = false;
+    let inNumberedList = false;
+    
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        
+        // Skip empty lines
+        if (line === '') {
+            // Close any open lists
+            if (inBulletList) {
+                html += '</ul>';
+                inBulletList = false;
+            }
+            if (inNumberedList) {
+                html += '</ol>';
+                inNumberedList = false;
+            }
+            continue;
+        }
+        
+        // Main section headings (bold with **text**)
+        if (line.match(/^\*\*[^*]+\*\*$/)) {
+            if (inBulletList) {
+                html += '</ul>';
+                inBulletList = false;
+            }
+            if (inNumberedList) {
+                html += '</ol>';
+                inNumberedList = false;
+            }
+            const headingText = line.replace(/\*\*/g, '');
+            html += `<div class="section-heading">${headingText}</div>`;
+            continue;
+        }
+        
+        // Numbered sections (1., 2., etc. followed by bold text)
+        const numberedHeadingMatch = line.match(/^(\d+\.)\s*\*\*([^*]+)\*\*/);
+        if (numberedHeadingMatch) {
+            if (inBulletList) {
+                html += '</ul>';
+                inBulletList = false;
+            }
+            if (inNumberedList) {
+                html += '</ol>';
+                inNumberedList = false;
+            }
+            html += `<div class="sub-heading">${numberedHeadingMatch[1]} ${numberedHeadingMatch[2]}</div>`;
+            continue;
+        }
+        
+        // Bullet points (start with - or •)
+        const bulletMatch = line.match(/^[-•]\s+(.+)$/);
+        if (bulletMatch) {
+            if (inNumberedList) {
+                html += '</ol>';
+                inNumberedList = false;
+            }
+            if (!inBulletList) {
+                html += '<ul class="bullet-list">';
+                inBulletList = true;
+            }
+            const content = formatInlineStyles(bulletMatch[1]);
+            html += `<li class="bullet-item">${content}</li>`;
+            continue;
+        }
+        
+        // Sub-bullet points (start with spaces/tabs followed by -)
+        const subBulletMatch = line.match(/^\s{2,}[-•]\s+(.+)$/);
+        if (subBulletMatch) {
+            if (inNumberedList) {
+                html += '</ol>';
+                inNumberedList = false;
+            }
+            if (!inBulletList) {
+                html += '<ul class="bullet-list">';
+                inBulletList = true;
+            }
+            const content = formatInlineStyles(subBulletMatch[1]);
+            html += `<li class="sub-bullet-item">${content}</li>`;
+            continue;
+        }
+        
+        // Numbered list items (1., 2., 3. etc.)
+        const numberedMatch = line.match(/^(\d+\.)\s+(.+)$/);
+        if (numberedMatch) {
+            if (inBulletList) {
+                html += '</ul>';
+                inBulletList = false;
+            }
+            if (!inNumberedList) {
+                html += '<ol class="numbered-list">';
+                inNumberedList = true;
+            }
+            const content = formatInlineStyles(numberedMatch[2]);
+            html += `<li class="numbered-item">${content}</li>`;
+            continue;
+        }
+        
+        // Code/formula blocks (lines with specific patterns like ES = )
+        if (line.includes(' = ') && (line.includes('ES') || line.includes('EF') || line.includes('LS') || line.includes('LF'))) {
+            if (inBulletList) {
+                html += '</ul>';
+                inBulletList = false;
+            }
+            if (inNumberedList) {
+                html += '</ol>';
+                inNumberedList = false;
+            }
+            html += `<div class="code-block">${line}</div>`;
+            continue;
+        }
+        
+        // Example blocks (lines starting with "Example:")
+        if (line.startsWith('**Example:**') || line.startsWith('Example:')) {
+            if (inBulletList) {
+                html += '</ul>';
+                inBulletList = false;
+            }
+            if (inNumberedList) {
+                html += '</ol>';
+                inNumberedList = false;
+            }
+            const exampleText = line.replace(/\*\*/g, '');
+            html += `<div class="example-block">${exampleText}</div>`;
+            continue;
+        }
+        
+        // Note blocks (lines starting with "Note:" or "**Note:**")
+        if (line.startsWith('**Note:**') || line.startsWith('Note:')) {
+            if (inBulletList) {
+                html += '</ul>';
+                inBulletList = false;
+            }
+            if (inNumberedList) {
+                html += '</ol>';
+                inNumberedList = false;
+            }
+            const noteText = formatInlineStyles(line.replace(/\*\*Note:\*\*/g, 'Note:'));
+            html += `<div class="note-text">${noteText}</div>`;
+            continue;
+        }
+        
+        // Regular paragraph with inline formatting
+        if (inBulletList) {
+            html += '</ul>';
+            inBulletList = false;
+        }
+        if (inNumberedList) {
+            html += '</ol>';
+            inNumberedList = false;
+        }
+        html += `<p>${formatInlineStyles(line)}</p>`;
+    }
+    
+    // Close any remaining open lists
+    if (inBulletList) {
+        html += '</ul>';
+    }
+    if (inNumberedList) {
+        html += '</ol>';
+    }
+    
+    return html;
+}
+
+/**
+ * Format sources section
+ * @param {string} sourcesText - Sources section text
+ * @returns {string} - Formatted HTML
+ */
+function formatSources(sourcesText) {
+    let html = '<div class="sources-section">';
+    html += '<div class="sources-heading">Sources</div>';
+    html += '<ul class="sources-list">';
+    
+    const lines = sourcesText.split('\n');
+    for (let line of lines) {
+        line = line.trim();
+        if (line.startsWith('-')) {
+            // Parse source line: - filename (Repository: repo): Page 1, Page 2
+            const sourceText = line.substring(1).trim();
+            html += `<li class="source-item">${formatInlineStyles(sourceText)}</li>`;
+        }
+    }
+    
+    html += '</ul>';
+    html += '</div>';
+    
+    return html;
+}
+
+/**
+ * Format inline styles (bold text, etc.)
+ * @param {string} text - Text to format
+ * @returns {string} - Formatted text
+ */
+function formatInlineStyles(text) {
+    // Bold text with **text**
+    text = text.replace(/\*\*([^*]+)\*\*/g, '<span class="bold-text">$1</span>');
+    return text;
+}
+
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Check if user is logged in
@@ -217,109 +461,125 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {Object} repo - Repository object
      */
     function toggleRepositorySelection(repo) {
-        const index = selectedRepositories.findIndex(r => r.repo_id === repo.repo_id);
+        const repoItem = document.querySelector(`[data-repo-id="${repo.repo_id}"]`);
+        const isSelected = selectedRepositories.some(r => r.repo_id === repo.repo_id);
         
-        if (index > -1) {
-            // Already selected, remove it
-            selectedRepositories.splice(index, 1);
-            console.log('Deselected:', repo.repo_name); // Debug log
+        if (isSelected) {
+            // Deselect
+            selectedRepositories = selectedRepositories.filter(r => r.repo_id !== repo.repo_id);
+            repoItem.classList.remove('selected');
         } else {
-            // Not selected, add it
+            // Select
             selectedRepositories.push(repo);
-            console.log('Selected:', repo.repo_name); // Debug log
+            repoItem.classList.add('selected');
         }
-
-        updateUI();
+        
+        updateSelectionUI();
     }
 
     /**
-     * Clear all selections
+     * Update UI based on repository selection
+     */
+    function updateSelectionUI() {
+        const selectedCount = selectedRepositories.length;
+        
+        // Update selected count
+        const countElement = selectedRepoInfo.querySelector('.selected-count');
+        if (countElement) {
+            countElement.textContent = `${selectedCount} ${selectedCount === 1 ? 'repository' : 'repositories'} selected`;
+        }
+        
+        // Show/hide selected info
+        if (selectedCount > 0) {
+            selectedRepoInfo.classList.add('show');
+            selectedRepoInfo.style.display = 'block';
+        } else {
+            selectedRepoInfo.classList.remove('show');
+            selectedRepoInfo.style.display = 'none';
+        }
+        
+        // Update repository status banner
+        const statusText = repoStatus.querySelector('.status-text');
+        if (selectedCount === 0) {
+            statusText.textContent = 'No repositories selected';
+            repoStatus.style.background = 'rgba(30, 30, 30, 0.8)';
+        } else if (selectedCount === 1) {
+            statusText.textContent = `Chatting with: ${selectedRepositories[0].repo_name}`;
+            repoStatus.style.background = 'rgba(102, 126, 234, 0.15)';
+        } else {
+            const repoNames = selectedRepositories.map(r => r.repo_name).join(', ');
+            statusText.textContent = `Chatting with ${selectedCount} repositories: ${repoNames}`;
+            repoStatus.style.background = 'rgba(102, 126, 234, 0.15)';
+        }
+        
+        // Enable/disable input
+        messageInput.disabled = selectedCount === 0;
+        sendBtn.disabled = selectedCount === 0;
+        
+        // Update chat view — only touch the welcome message, never wipe existing chat
+        const hasMessages = chatMessages.querySelector('.message');
+        if (selectedCount > 0) {
+            // Only show welcome if there are no real messages yet
+            if (!hasMessages) {
+                addWelcomeMessage();
+            }
+        } else {
+            // Only reset to the "no repo selected" welcome if there are no real messages
+            if (!hasMessages) {
+                chatMessages.innerHTML = `
+                    <div class="welcome-message">
+                        <div class="welcome-icon">🤖</div>
+                        <h3 class="welcome-title">Welcome to RAGAI Chat!</h3>
+                        <p class="welcome-description">Select one or more repositories from the sidebar to start chatting with your documents.</p>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    /**
+     * Clear all repository selections
      */
     clearSelectionBtn.addEventListener('click', function() {
         selectedRepositories = [];
-        updateUI();
-        console.log('Cleared all selections'); // Debug log
+        document.querySelectorAll('.repo-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+        updateSelectionUI();
     });
 
     /**
-     * Update UI based on current selections
-     */
-    function updateUI() {
-        // Update visual selection state of repository items
-        const repoItems = document.querySelectorAll('.repo-item');
-        repoItems.forEach(item => {
-            const repoId = item.dataset.repoId;
-            const isSelected = selectedRepositories.some(r => r.repo_id === repoId);
-            
-            if (isSelected) {
-                item.classList.add('selected');
-            } else {
-                item.classList.remove('selected');
-            }
-        });
-
-        // Update selected info panel
-        const count = selectedRepositories.length;
-        if (count > 0) {
-            selectedRepoInfo.classList.add('show');
-            selectedRepoInfo.querySelector('.selected-count').textContent = 
-                `${count} repository${count !== 1 ? 's' : ''} selected`;
-        } else {
-            selectedRepoInfo.classList.remove('show');
-        }
-
-        // Update status banner
-        if (count > 0) {
-            const repoNames = selectedRepositories.map(r => r.repo_name).join(', ');
-            updateRepoStatus(`Selected: ${repoNames}`, '✓');
-            repoStatus.classList.add('active');
-            
-            // Enable chat input
-            messageInput.disabled = false;
-            sendBtn.disabled = false;
-            messageInput.focus();
-        } else {
-            updateRepoStatus('No repositories selected', 'ℹ️');
-            repoStatus.classList.remove('active');
-            
-            // Disable chat input
-            messageInput.disabled = true;
-            sendBtn.disabled = true;
-        }
-
-        // Clear chat and show welcome message
-        clearChat();
-        if (count > 0) {
-            addWelcomeMessage();
-        } else {
-            // Show default welcome message
-            chatMessages.innerHTML = `
-                <div class="welcome-message">
-                    <div class="welcome-icon">🤖</div>
-                    <h3 class="welcome-title">Welcome to RAGAI Chat!</h3>
-                    <p class="welcome-description">Select one or more repositories from the sidebar to start chatting with your documents.</p>
-                </div>
-            `;
-        }
-    }
-
-    /**
-     * Open files modal to view all files in repository
+     * Open files modal
      * @param {Object} repo - Repository object
      */
     function openFilesModal(repo) {
-        console.log('Opening files modal for:', repo.repo_name); // Debug log
+        filesModalTitle.textContent = `Files in ${repo.repo_name}`;
         
-        filesModalTitle.textContent = repo.repo_name;
-        filesCount.textContent = `${repo.files.length} file${repo.files.length !== 1 ? 's' : ''}`;
-        
-        // Display files list
         if (repo.files && repo.files.length > 0) {
-            displayFilesInModal(repo.files);
+            filesCount.textContent = `${repo.files.length} file${repo.files.length !== 1 ? 's' : ''}`;
+            
+            // Display files
+            filesListModal.innerHTML = '';
+            repo.files.forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item-modal';
+                fileItem.innerHTML = `
+                    <div class="file-item-info-modal">
+                        <div class="file-item-icon-modal">📄</div>
+                        <div class="file-item-details">
+                            <div class="file-item-name-modal">${file.file_name}</div>
+                            <div class="file-item-id-modal">ID: ${file.file_id}</div>
+                        </div>
+                    </div>
+                `;
+                filesListModal.appendChild(fileItem);
+            });
+            
             emptyFilesState.classList.remove('show');
             emptyFilesState.style.display = 'none';
             filesListModal.style.display = 'flex';
         } else {
+            filesCount.textContent = '0 files';
             emptyFilesState.classList.add('show');
             emptyFilesState.style.display = 'block';
             filesListModal.style.display = 'none';
@@ -329,58 +589,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Display files in the modal
-     * @param {Array} files - Array of file objects
-     */
-    function displayFilesInModal(files) {
-        filesListModal.innerHTML = '';
-        
-        files.forEach(file => {
-            const fileItem = document.createElement('div');
-            fileItem.className = 'file-item-modal';
-            
-            fileItem.innerHTML = `
-                <div class="file-item-info-modal">
-                    <span class="file-item-icon-modal">📄</span>
-                    <div class="file-item-details">
-                        <div class="file-item-name-modal">${file.file_name}</div>
-                        <div class="file-item-id-modal">ID: ${file.file_id}</div>
-                    </div>
-                </div>
-            `;
-            
-            filesListModal.appendChild(fileItem);
-        });
-    }
-
-    /**
      * Close files modal
      */
-    function closeFilesModalFunc() {
+    function closeModal() {
         filesModal.classList.remove('show');
     }
 
-    closeFilesModal.addEventListener('click', closeFilesModalFunc);
-    closeFilesBtnModal.addEventListener('click', closeFilesModalFunc);
+    closeFilesModal.addEventListener('click', closeModal);
+    closeFilesBtnModal.addEventListener('click', closeModal);
     
-    // Close modal when clicking on overlay
-    filesModal.addEventListener('click', function(e) {
-        if (e.target === filesModal || e.target.classList.contains('modal-overlay')) {
-            closeFilesModalFunc();
-        }
-    });
-
-    /**
-     * Update repository status banner
-     * @param {string} text - Status text
-     * @param {string} icon - Status icon
-     */
-    function updateRepoStatus(text, icon) {
-        const statusIcon = repoStatus.querySelector('.status-icon');
-        const statusText = repoStatus.querySelector('.status-text');
-        statusIcon.textContent = icon;
-        statusText.textContent = text;
-    }
+    // Close modal when clicking overlay
+    filesModal.querySelector('.modal-overlay').addEventListener('click', closeModal);
 
     /**
      * Clear chat messages
@@ -393,6 +612,10 @@ document.addEventListener('DOMContentLoaded', function() {
      * Add welcome message when repositories are selected
      */
     function addWelcomeMessage() {
+        // Don't overwrite if real chat messages already exist
+        if (chatMessages.querySelector('.message')) {
+            return;
+        }
         const repoNames = selectedRepositories.map(r => r.repo_name).join(', ');
         const totalFiles = selectedRepositories.reduce((sum, r) => sum + (r.files ? r.files.length : 0), 0);
         
@@ -409,8 +632,9 @@ document.addEventListener('DOMContentLoaded', function() {
      * Add message to chat
      * @param {string} content - Message content
      * @param {string} sender - 'user' or 'assistant'
+     * @param {string} question - Original question (for saving)
      */
-    function addMessage(content, sender) {
+    function addMessage(content, sender, question = '') {
         // Remove welcome message if exists
         const welcomeMsg = chatMessages.querySelector('.welcome-message');
         if (welcomeMsg) {
@@ -429,7 +653,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const messageContent = document.createElement('div');
         messageContent.className = 'message-content';
-        messageContent.textContent = content;
+        
+        // Format assistant messages with structured HTML
+        if (sender === 'assistant') {
+            messageContent.innerHTML = formatAIResponse(content);
+        } else {
+            messageContent.textContent = content;
+        }
         
         const messageTime = document.createElement('div');
         messageTime.className = 'message-time';
@@ -440,6 +670,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         wrapper.appendChild(messageContent);
         wrapper.appendChild(messageTime);
+        
+        // Add save button for assistant messages
+        if (sender === 'assistant' && question) {
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'save-response-btn';
+            saveBtn.type = 'button'; // prevents form submit
+            saveBtn.innerHTML = '💾 Save Response';
+
+            saveBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                saveQueryWithButton(question, content, saveBtn);
+                return false;
+            });
+            wrapper.appendChild(saveBtn);
+        }
         
         messageDiv.appendChild(avatar);
         messageDiv.appendChild(wrapper);
@@ -549,9 +796,9 @@ document.addEventListener('DOMContentLoaded', function() {
             removeTypingIndicator();
 
             if (response.ok) {
-                // Add AI response to chat
+                // Add AI response to chat with question for saving
                 const aiResponse = data.response || 'I apologize, but I could not generate a response.';
-                addMessage(aiResponse, 'assistant');
+                addMessage(aiResponse, 'assistant', message);
                 
                 // Optionally log which repositories were used in the response
                 if (data.response_repo_names && data.response_repo_names.length > 0) {
@@ -594,6 +841,92 @@ document.addEventListener('DOMContentLoaded', function() {
         this.style.height = 'auto';
         this.style.height = Math.min(this.scrollHeight, 150) + 'px';
     });
+
+    /**
+     * Save query and response with button feedback
+     * @param {string} question - The question asked
+     * @param {string} response - The AI response
+     * @param {HTMLElement} button - The save button element
+     */
+    async function saveQueryWithButton(question, response, button) {
+        console.log('Saving query...'); // Debug log
+        
+        // Get repository names
+        const repoNames = selectedRepositories.map(r => r.repo_name).join(', ');
+        
+        // Show loading state on button
+        button.disabled = true;
+        button.innerHTML = '⏳ Saving...';
+        
+        try {
+            const saveResponse = await fetch(`${API_BASE_URL}/saved-queries/save`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    question: question,
+                    response: response,
+                    repo_names: repoNames
+                })
+            });
+
+            console.log('Save response status:', saveResponse.status); // Debug log
+
+            if (saveResponse.ok) {
+                const data = await saveResponse.json();
+                console.log('Query saved:', data);
+                
+                // Update button to show success
+                button.innerHTML = '✅ Saved!';
+                button.style.background = 'rgba(34, 197, 94, 0.1)';
+                button.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+                button.style.color = '#22c55e';
+                
+                // Keep the success state and don't allow re-saving
+                button.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                };
+            } else {
+                const errorData = await saveResponse.json();
+                console.error('Failed to save query:', errorData);
+                
+                // Show error state on button
+                button.innerHTML = '❌ Failed';
+                button.disabled = false;
+                button.style.background = 'rgba(239, 68, 68, 0.1)';
+                button.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                button.style.color = '#ef4444';
+                
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    button.innerHTML = '💾 Save Response';
+                    button.style.background = '';
+                    button.style.borderColor = '';
+                    button.style.color = '';
+                }, 2000);
+            }
+        } catch (error) {
+            console.error('Error saving query:', error);
+            
+            // Show error state on button
+            button.innerHTML = '❌ Error';
+            button.disabled = false;
+            button.style.background = 'rgba(239, 68, 68, 0.1)';
+            button.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+            button.style.color = '#ef4444';
+            
+            // Reset after 2 seconds
+            setTimeout(() => {
+                button.innerHTML = '💾 Save Response';
+                button.style.background = '';
+                button.style.borderColor = '';
+                button.style.color = '';
+            }, 2000);
+        }
+    }
 
     // Load repositories on page load
     loadRepositories();

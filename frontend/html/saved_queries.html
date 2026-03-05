@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Application - Saved Queries</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Container */
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #303030;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn,
+        .logout-btn {
+            padding: 10px 24px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1.5px solid #404040;
+            background: transparent;
+        }
+
+        .back-btn {
+            color: #b0b0b0;
+        }
+
+        .back-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .logout-btn {
+            color: #b0b0b0;
+        }
+
+        .logout-btn:hover {
+            background: rgba(220, 53, 69, 0.1);
+            border-color: #dc3545;
+            color: #ff6b6b;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        /* Page header */
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            font-size: 1rem;
+            color: #909090;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(35, 35, 35, 0.8);
+            border: 1px solid #404040;
+            border-radius: 12px;
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-width: 200px;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+        }
+
+        .stat-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #909090;
+        }
+
+        /* Loading state */
+        .loading-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+        }
+
+        .loading-container.show {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #404040;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1rem;
+            color: #909090;
+        }
+
+        /* Empty state */
+        .empty-state {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 40px;
+            text-align: center;
+        }
+
+        .empty-state.show {
+            display: flex;
+        }
+
+        .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .empty-description {
+            font-size: 1rem;
+            color: #909090;
+            margin-bottom: 30px;
+        }
+
+        .empty-action {
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .empty-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Queries grid */
+        .queries-grid {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+            gap: 25px;
+        }
+
+        .queries-grid.show {
+            display: grid;
+        }
+
+        /* Query card */
+        .query-card {
+            background: rgba(35, 35, 35, 0.8);
+            border: 1px solid #404040;
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .query-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .query-card-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #404040;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .query-meta {
+            flex: 1;
+        }
+
+        .query-date {
+            font-size: 0.85rem;
+            color: #909090;
+            margin-bottom: 5px;
+        }
+
+        .query-repos {
+            font-size: 0.85rem;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .query-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            background: transparent;
+            border: 1px solid #404040;
+            border-radius: 6px;
+            color: #b0b0b0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .action-btn.delete:hover {
+            background: rgba(220, 53, 69, 0.1);
+            border-color: #dc3545;
+            color: #ff6b6b;
+        }
+
+        .query-card-body {
+            padding: 25px;
+        }
+
+        .query-question {
+            margin-bottom: 20px;
+        }
+
+        .query-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #909090;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .query-text {
+            font-size: 1rem;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .query-response {
+            padding-top: 20px;
+            border-top: 1px solid #404040;
+        }
+
+        .response-content {
+            font-size: 0.95rem;
+            color: #d0d0d0;
+            line-height: 1.6;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .response-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .response-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .response-content::-webkit-scrollbar-thumb {
+            background: #404040;
+            border-radius: 3px;
+        }
+
+        /* Response formatting */
+        .response-content .section-heading {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-top: 12px;
+            margin-bottom: 8px;
+        }
+
+        .response-content .bold-text {
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+
+            .queries-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                padding: 0 20px;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .stat-card {
+                min-width: 150px;
+                padding: 15px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Main container -->
+    <div class="container">
+        <!-- Header section -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">RAG<span class="highlight">AI</span></h1>
+                <div class="header-actions">
+                    <button class="back-btn" id="backBtn">← Back to Home</button>
+                    <button class="logout-btn" id="logoutBtn">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main content area -->
+        <main class="main-content">
+            <!-- Page header -->
+            <div class="page-header">
+                <h2 class="page-title">Saved Queries</h2>
+                <p class="page-subtitle">View and manage your saved questions and responses</p>
+            </div>
+
+            <!-- Stats bar -->
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <div class="stat-icon">📝</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="totalQueries">0</div>
+                        <div class="stat-label">Saved Queries</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading state -->
+            <div id="loadingContainer" class="loading-container show">
+                <div class="loading-spinner"></div>
+                <p class="loading-text">Loading your saved queries...</p>
+            </div>
+
+            <!-- Empty state -->
+            <div id="emptyState" class="empty-state">
+                <div class="empty-icon">📭</div>
+                <h3 class="empty-title">No Saved Queries Yet</h3>
+                <p class="empty-description">Start chatting with your documents and save important responses for later reference.</p>
+                <button class="empty-action" onclick="window.location.href='ai_chat.html'">Start Chatting</button>
+            </div>
+
+            <!-- Queries grid -->
+            <div id="queriesGrid" class="queries-grid">
+                <!-- Query cards will be dynamically added here -->
+            </div>
+        </main>
+    </div>
+
+    <script>
+        /**
+         * saved_queries.js
+         * Handles saved queries page functionality
+         */
+
+        // API Configuration
+        const API_BASE_URL = 'http://localhost:8000';
+
+        // Global variables
+        let savedQueries = [];
+
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            const userId = sessionStorage.getItem('userId');
+            if (!userId) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Get DOM elements
+            const backBtn = document.getElementById('backBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const loadingContainer = document.getElementById('loadingContainer');
+            const emptyState = document.getElementById('emptyState');
+            const queriesGrid = document.getElementById('queriesGrid');
+            const totalQueriesEl = document.getElementById('totalQueries');
+
+            /**
+             * Navigate back to home
+             */
+            backBtn.addEventListener('click', function() {
+                window.location.href = 'home.html';
+            });
+
+            /**
+             * Handle logout
+             */
+            logoutBtn.addEventListener('click', function() {
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            });
+
+            /**
+             * Load saved queries
+             */
+            async function loadSavedQueries() {
+                console.log('Loading saved queries...');
+                
+                loadingContainer.classList.add('show');
+                emptyState.classList.remove('show');
+                queriesGrid.classList.remove('show');
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/saved-queries/get-queries?user_id=${userId}`);
+                    
+                    console.log('Response status:', response.status);
+                    
+                    const data = await response.json();
+                    console.log('Response data:', data);
+
+                    loadingContainer.classList.remove('show');
+
+                    if (response.ok && data.saved_queries) {
+                        savedQueries = data.saved_queries;
+                        console.log('Saved queries:', savedQueries);
+
+                        // Update stats
+                        totalQueriesEl.textContent = savedQueries.length;
+
+                        if (savedQueries.length > 0) {
+                            displayQueries(savedQueries);
+                        } else {
+                            emptyState.classList.add('show');
+                        }
+                    } else {
+                        console.error('Failed to load saved queries');
+                        emptyState.classList.add('show');
+                    }
+                } catch (error) {
+                    console.error('Error loading saved queries:', error);
+                    loadingContainer.classList.remove('show');
+                    emptyState.classList.add('show');
+                }
+            }
+
+            /**
+             * Display queries in grid
+             * @param {Array} queries - List of saved queries
+             */
+            function displayQueries(queries) {
+                console.log('Displaying', queries.length, 'queries');
+                
+                queriesGrid.innerHTML = '';
+
+                queries.forEach(query => {
+                    const queryCard = createQueryCard(query);
+                    queriesGrid.appendChild(queryCard);
+                });
+
+                queriesGrid.classList.add('show');
+            }
+
+            /**
+             * Create query card element
+             * @param {Object} query - Query object
+             * @returns {HTMLElement} Query card element
+             */
+            function createQueryCard(query) {
+                const card = document.createElement('div');
+                card.className = 'query-card';
+                
+                // Format date
+                const date = new Date(query.created_at);
+                const dateStr = date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                // Format response (remove sources section for preview)
+                let responsePreview = query.response;
+                const sourcesIndex = responsePreview.indexOf('**Sources:**');
+                if (sourcesIndex !== -1) {
+                    responsePreview = responsePreview.substring(0, sourcesIndex).trim();
+                }
+                
+                // Format response with basic HTML
+                responsePreview = formatResponsePreview(responsePreview);
+
+                card.innerHTML = `
+                    <div class="query-card-header">
+                        <div class="query-meta">
+                            <div class="query-date">📅 ${dateStr}</div>
+                            ${query.repo_names ? `<div class="query-repos">📚 ${query.repo_names}</div>` : ''}
+                        </div>
+                        <div class="query-actions">
+                            <button class="action-btn delete" onclick="deleteQuery('${query.query_id}')">🗑️ Delete</button>
+                        </div>
+                    </div>
+                    <div class="query-card-body">
+                        <div class="query-question">
+                            <div class="query-label">Question</div>
+                            <div class="query-text">${escapeHtml(query.question)}</div>
+                        </div>
+                        <div class="query-response">
+                            <div class="query-label">Response</div>
+                            <div class="response-content">${responsePreview}</div>
+                        </div>
+                    </div>
+                `;
+
+                return card;
+            }
+
+            /**
+             * Format response preview with basic styling
+             * @param {string} text - Response text
+             * @returns {string} - Formatted HTML
+             */
+            function formatResponsePreview(text) {
+                let html = text;
+                
+                // Format bold text
+                html = html.replace(/\*\*([^*]+)\*\*/g, '<span class="bold-text">$1</span>');
+                
+                // Format headings
+                const lines = html.split('\n');
+                let formatted = '';
+                
+                for (let line of lines) {
+                    line = line.trim();
+                    if (line === '') continue;
+                    
+                    // Section headings
+                    if (line.match(/^<span class="bold-text">[^<]+<\/span>$/)) {
+                        formatted += `<div class="section-heading">${line.replace(/<\/?span[^>]*>/g, '')}</div>`;
+                    } else {
+                        formatted += `${line}<br>`;
+                    }
+                }
+                
+                return formatted;
+            }
+
+            /**
+             * Escape HTML to prevent XSS
+             * @param {string} text - Text to escape
+             * @returns {string} - Escaped text
+             */
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            /**
+             * Delete a saved query
+             * @param {string} queryId - Query ID to delete
+             */
+            window.deleteQuery = async function(queryId) {
+                if (!confirm('Are you sure you want to delete this saved query?')) {
+                    return;
+                }
+
+                console.log('Deleting query:', queryId);
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/saved-queries/delete/${queryId}?user_id=${userId}`, {
+                        method: 'DELETE'
+                    });
+
+                    console.log('Delete response status:', response.status);
+
+                    if (response.ok) {
+                        console.log('Query deleted successfully');
+                        // Reload queries
+                        loadSavedQueries();
+                    } else {
+                        const data = await response.json();
+                        alert('Failed to delete query: ' + (data.detail || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error deleting query:', error);
+                    alert('Unable to connect to server. Please try again later.');
+                }
+            };
+
+            // Load queries on page load
+            loadSavedQueries();
+        });
+    </script>
+</body>
+</html>
