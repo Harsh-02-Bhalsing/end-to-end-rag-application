@@ -10,3 +10,12 @@ python-multipart
 PyPDF2
 langchain-huggingface
 sentence_transformers
+pytesseract 
+pdf2image 
+opencv-python 
+pillow
+python-dotenv
+langchain-ollama 
+ollama
+faiss-cpu
+langchain-community

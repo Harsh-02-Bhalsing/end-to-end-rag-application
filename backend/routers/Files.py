@@ -1,6 +1,6 @@
 from fastapi import APIRouter,HTTPException,UploadFile,File,Form,Depends
 from sqlalchemy.orm import Session
-from core.file_processing import process_txt,process_csv,process_pdf
+from core.file_processing import process_txt,process_csv,process_pdf,process_handwritten_pdf
 from db.database import get_db
 from models.repos import db_repo
 from core.vector_store import get_vector_store
@@ -51,12 +51,14 @@ async def upload_file(
     if(extension=="txt"):
       documents=process_txt(file_bytes,metadata)
     elif(extension=="pdf"):
-      documents=process_pdf(file_bytes,metadata)
+      documents=process_handwritten_pdf(file_bytes,metadata)
     elif(extension=="csv"):
       documents=process_csv(file_bytes,metadata)
 
-    vector_store=get_vector_store(repo_id)
+    vector_store = get_vector_store(repo_id)
     vector_store.add_documents(documents)
+
+    vector_store.save_local(f"vector_stores/{repo_id}")
 
     file_id=f"file_{uuid.uuid4().hex[:8]}" 
 
