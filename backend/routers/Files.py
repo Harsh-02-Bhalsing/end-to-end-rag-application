@@ -55,8 +55,10 @@ async def upload_file(
     elif(extension=="csv"):
       documents=process_csv(file_bytes,metadata)
 
-    vector_store=get_vector_store(repo_id)
+    vector_store = get_vector_store(repo_id)
     vector_store.add_documents(documents)
+
+    vector_store.save_local(f"vector_stores/{repo_id}")
 
     file_id=f"file_{uuid.uuid4().hex[:8]}" 
 

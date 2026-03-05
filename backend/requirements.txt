@@ -15,3 +15,7 @@ pdf2image
 opencv-python 
 pillow
 python-dotenv
+langchain-ollama 
+ollama
+faiss-cpu
+langchain-community
